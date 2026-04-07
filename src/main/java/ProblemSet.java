@@ -12,102 +12,86 @@ public class ProblemSet {
 	public static void main(String args[]) {
 		Scanner input = new Scanner(System.in);
 		System.out.print("Input email(s): ");
-		String emails = input.nextLine().trim();
-		String email1 = "";
-		String email2 = "";
-
-		int commaLocation = emails.indexOf(",");
-		if (commaLocation == -1) {
-			email1 = emails;
+		String emails = input.nextLine().trim().toLowerCase();
+		
+		if (emails.contains(",")) {
+			//Split the emails
+			String email1 = emails.substring(0, emails.indexOf(",")).trim();
+			String email2 = emails.substring(emails.indexOf(",") + 1).trim();
+			//Validate the emails
+			String rule1 = isValidEmail(email1);
+			String rule2 = isValidEmail(email2);
+			//Print results
+			System.out.println(result(rule1, email1));
+			System.out.println(result(rule2, email2));
 		}
 		else {
-			email1 = emails.substring(0, commaLocation).trim();
-			email2 = emails.substring(commaLocation + 1).trim();
+			String rule = isValidEmail(emails);
+			System.out.println(result(rule, emails));
 		}
-
-		System.out.println(isValidEmail1(email1));
-		System.out.println(isValidEmail2(email2));
 	}
 	
-	public static String isValidEmail1(String email1) {
-		if (!email1.contains("@")) {
+	public static String isValidEmail(String email) {
+		if (!email.contains("@")) { //Contains @ check
 	        return "Invalid: Missing @";
 	    }
-		int checkAt1 = email1.indexOf("@");
-		int checkAt2 = email1.lastIndexOf("@");
-		if (checkAt1 != checkAt2) {
+		if (email.indexOf("@") != email.lastIndexOf("@")) { //1 @ check
 			return "Invalid: Multiple @";
 		}
-
-		String email1Local = email1.substring(0, email1.indexOf("@"));
-		String email1Domain = email1.substring(email1.indexOf("@") + 1);
-		
-        if (email1.indexOf(".") == 0 || email1.lastIndexOf(".") == email1.length() - 1) {
+		if (email.indexOf(".") == 0 || email.lastIndexOf(".") == email.length() - 1) { //Starts/Ends with dot check
             return "Invalid: Starts or ends with dot";
         }
-        if (email1.contains(" ")) {
+
+		String emailLocal = email.substring(0, email.indexOf("@")); //create local and domain
+		String emailDomain = email.substring(email.indexOf("@") + 1);
+		
+		if (emailLocal.contains(".")) { //Normalize local with excption C
+			emailLocal = emailLocal.replace(".", "");
+		}
+        if (email.contains(" ")) { //Contains spaces checks
             return "Invalid: Contains spaces";
         }
-        if (email1Local.length() < 1) {
+        if (emailLocal.length() < 1) { //Local too short check
 			return "Invalid: Local part too short";
 		}
-		if (email1Local.length() > 64) { 
+		if (emailLocal.length() > 64) { //Local too long check
             return "Invalid: Local part too long";
         }
-		if (!email1Domain.contains(".")) {
+		if (!emailDomain.contains(".")) { //Domain contains dot checm
 			return "Invalid: No dot in domain";
 		}
-		if (email1Domain.contains("+") || email1Domain.contains("_")) {
-			return "Invalid: Contains + or _ in domain";
-		}
-		if (email1Local.contains(".")) {
-			email1 = email1.substring(0, email1.indexOf(".")) + email1.substring(email1.indexOf(".") + 1);
-			return "Valid (Gmail normalized) | Local: " + email1Local + " | Domain: "  + email1Domain;
-		}
-		if (email1Domain.substring(email1Domain.lastIndexOf(".") + 1).length() > 1 && email1Domain.substring(email1Domain.lastIndexOf(".") + 1).length() < 7) { //The length of the domain after the final dot must be 2-6 characters
-            return "Valid | Local: " + email1Local + " | Domain: " + email1Domain;
+		String emailDomainExtension = emailDomain.substring(emailDomain.lastIndexOf(".") + 1);
+		if (emailDomainExtension.length() < 2 || emailDomainExtension.length() > 6) { //Domain extension between 2 - 6 characters
+            return "Invalid: Invalid domain extension length";
         }
-		return "Invalid: Invalid domain extension length";
+		return isValidB(email, emailDomain); //If passes checks above then it checks for exception B
 	}
 
-		public static String isValidEmail2(String email2) {
-		if (!email2.contains("@")) {
-	        return "Invalid: Missing @";
-	    }
-		int checkAt1 = email2.indexOf("@");
-		int checkAt2 = email2.lastIndexOf("@");
-		if (checkAt1 != checkAt2) {
-			return "Invalid: Multiple @";
+	public static String isValidB(String email, String emailDomain) {
+		if (email.startsWith("+") || email.endsWith("+")) { //Starts/ends with + check
+			return "Invalid: Starts or ends with +";
 		}
+		if (email.startsWith("_") || email.endsWith("_")) { //Starts/ends with _ check
+			return "Invalid: Starts or ends with _";
+		}
+		if (emailDomain.contains("+") || emailDomain.contains("_")) { //Domain contains + or _ check
+			return "Invalid: Domain contains + or _";
+		}
+		return "Valid"; //If passes all exception B checks then its valid
+	}
 
-		String email2Local = email2.substring(0, email2.indexOf("@"));
-		String email2Domain = email2.substring(email2.indexOf("@") + 1);
-		
-        if (email2.indexOf(".") == 0 || email2.lastIndexOf(".") == email2.length() - 1) {
-            return "Invalid: Starts or ends with dot";
-        }
-        if (email2.contains(" ")) {
-            return "Invalid: Contains spaces";
-        }
-        if (email2Local.length() < 1) {
-			return "Invalid: Local part too short";
+	public static String result(String rule, String email) {
+		//Valid
+		if (rule.equals("Valid")) {
+			String emailLocal = email.substring(0, email.indexOf("@"));
+			String emailDomain = email.substring(email.indexOf("@") + 1);
+
+			if (emailLocal.contains(".")) { //Check if email was normalized
+				return email + ": Valid (Gmail Normalized) | Local: " + emailLocal + " | Domain: " + emailDomain;
+			}
+			return email + ": Valid | Local: " + emailLocal + " | Domain: " + emailDomain;
 		}
-		if (email2Local.length() > 64) { 
-            return "Invalid: Local part too long";
-        }
-		if (!email2Domain.contains(".")) {
-			return "Invalid: No dot in domain";
-		}
-		if (email2Domain.contains("+") || email2Domain.contains("_")) {
-			return "Invalid: Contains + or _ in domain";
-		}
-		if (email2Local.contains(".")) {
-			email2 = email2.substring(0, email2.indexOf(".")) + email2.substring(email2.indexOf(".") + 1);
-			return "Valid (Gmail normalized) | Local: " + email2Local + " | Domain: " + email2Domain;
-		}
-		if (email2Domain.substring(email2Domain.lastIndexOf(".") + 1).length() > 1 && email2Domain.substring(email2Domain.lastIndexOf(".") + 1).length() < 7) { //The length of the domain after the final dot must be 2-6 characters
-            return "Valid | Local: " + email2Local + " | Domain: " + email2Domain;
-        }
-		return "Invalid: Invalid domain extension length";
+		//Invalid
+		return email + ": Invalid: " + rule;
 	}
 }
