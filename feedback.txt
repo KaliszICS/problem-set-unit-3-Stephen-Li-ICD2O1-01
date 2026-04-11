@@ -1,0 +1,11 @@
+K(30%): 100
+I(30%): 92
+C(10%): 100
+A(30%): 92
+95.2
+
+
+Great work, some small things.
+Gmail should be allowed to start with a dot since it removes it
+Gmail addresses should always say normalized (regardless of whether there were dots or not).
+When you have an invalid email as the second email it says invalid twice.
